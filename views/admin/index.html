@@ -1,0 +1,75 @@
+<html>
+	<head>
+		<script src="/bootstrap.min.js"></script>
+		<script src="/angular.min.js"></script>
+		<script src="/angular-resource.min.js"></script>
+		<script src="/angular-route.min.js"></script>
+		<script src="/script.js"></script>		
+		<script src="/factories.js"></script>
+		<link rel="stylesheet" type="text/css" href="/bootstrap.min.css">
+	</head>
+	
+	<body>
+		<script>
+			sumoApp.controller('addController', 
+
+				function($scope, Question, QuestionOption, $location){
+
+					$scope.questions = new Question.query({});
+
+					$scope.editGo = function(id){
+						go('/admin/add/' + id);
+					}
+				}
+			);
+
+		</script>
+
+		<div class="container"  ng-app="sumoApp" ng-controller="addController">
+			<nav class="navbar navbar-inverse">
+				<div class="navbar-header">
+					<a class="navbar-brand" ng-click="go('/admin/index')">Admin Dashboard</a>
+				</div>
+				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+					<ul class="nav navbar-nav">
+						<li class="active"><a onClick="go('/admin/index')">View Questions</a></li>
+						<li class=""><a onClick="go('/admin/add/')">Add Question</a></li>
+						<li class=""><a onClick="go('/logout')">Logout</a></li>
+					</ul>
+				</div>
+			</nav>
+
+			<div ng-repeat="question in questions.list" class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+				<div class="panel panel-primary">
+			    	<div class="panel-heading" role="tab" id="headingOne">
+			      		<h4 class="panel-title">
+			      			<div class="row">
+					      		<div class="col-sm-6">
+	          						{{question.question}}
+	     	     				</div>
+	          					<div class="col-sm-6 text-right">
+	          						<a ng-click="editGo(question.id)">edit</a>
+	          					</div>
+	          				</div>
+						</h4>
+					</div>
+					<div id="question{{question.id}}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="question{{question.id}}">
+						<div class="panel-body">
+							<table class="table table-hover">
+								<tr ng-repeat="option in question.questionOptions | orderBy:'-answer_data.answers'">
+									<td>{{option.optionText}}</td>
+									<td>{{option.answer_data.answers}} <em>of</em> {{option.answer_data.total}}</td>
+									<td>
+										<div class="progress" style="margin-bottom:0px">
+											<div class="progress-bar" role="progressbar" aria-valuenow="{{option.answer_data.answers * 100 / option.answer_data.total}}" aria-valuemin="0" aria-valuemax="100" style="width: {{option.answer_data.answers * 100 / option.answer_data.total}}%;">{{option.answer_data.answers * 100 / option.answer_data.total | number: 2}}%</div>
+										</div>
+									</td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

@@ -1,0 +1,56 @@
+<html>
+	<head>
+		<script src="/bootstrap.min.js"></script>
+		<script src="/angular.min.js"></script>
+		<script src="/angular-resource.min.js"></script>
+		<script src="/angular-route.min.js"></script>
+		<script src="/factories.js"></script>
+		<link rel="stylesheet" type="text/css" href="/bootstrap.min.css">
+	</head>
+	
+	<body ng-app="sumoApp" ng-controller="addController">
+		<script>
+
+			sumoApp.controller('addController', 
+				function($scope, User){
+
+					$scope.user = new User.query({}, function(user){
+						if(user.list[0].remainingQuestions[0] == undefined){
+							$scope.finished = true;
+							$scope.loaded = true;
+						}else{
+							$scope.finished = false;
+							$scope.loaded = true;
+							$scope.question = user.list[0].remainingQuestions[0];
+						}
+					});
+				}
+			);
+
+		</script>
+
+
+		<div class="well col-sm-4 col-sm-offset-4">
+			<div ng-if="loaded">
+				<div ng-if="finished" class="panel panel-primary">
+					<div class="text-center panel-body">
+						<h1>Thank you!</h1>
+					</div>
+				</div>
+				<div ng-if="!finished" class="panel panel-primary">
+					<div class="panel-heading">
+						<h3 class="panel-title">{{question.question}}</h3>
+		  			</div>
+					<div class="panel-body">
+						<form action="/", method="post">
+							<div class="form-group" ng-repeat="option in user.list[0].remainingQuestions[0].questionOptions">
+								<input type="checkbox" name="option" value={{option.id}}/> {{option.optionText}}
+							</div>
+							<button type="submit" class="btn btn-default">Submit</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
