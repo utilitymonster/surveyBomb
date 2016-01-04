@@ -1,3 +1,3 @@
 #Install
 
-` npm init
+' npm init
