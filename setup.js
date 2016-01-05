@@ -44,14 +44,6 @@ sequelize.sync({force: force}).then(function(){
       console.log("Setup Complete - Run 'node index.js' and visit '/admin/index' in your browser");
     });
 
-  }).catch(function(error){
-    console.log("Error connecting to DB");
-      console.log(error);
-  });
-
-  function onErr(err) {
-    console.log(err);
-    return 1;
-  }
+  })
 })
 

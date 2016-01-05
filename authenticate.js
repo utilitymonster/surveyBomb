@@ -3,10 +3,6 @@ var crypto = require('crypto');
 
 module.exports.obscure_password = function(password, salt){
 
-	console.log(password);
-	console.log('***');
-	console.log(salt);
-
 	var iterations = config.iterations;
 	var keylen = config.keylen;
 
