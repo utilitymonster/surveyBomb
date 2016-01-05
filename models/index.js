@@ -6,7 +6,6 @@ var password = config.db_password;
 var db_name = config.db_name;
 var sequelize = new Sequelize('mysql://'+username+':'+password+'@localhost/'+db_name);
 
-
 var models = [
 	'Admin',
 	'Answer',
