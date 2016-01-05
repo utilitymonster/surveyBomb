@@ -1,7 +1,6 @@
 module.exports = function(sequelize, DataTypes) {
 
 	var User = sequelize.define('users', {
-		ip: { type: DataTypes.STRING}
 	}, {
 		freezeTableName: true,
 		associations: true,

@@ -15,13 +15,20 @@
 				function($scope, User){
 
 					$scope.user = new User.query({}, function(user){
-						if(user.list[0].remainingQuestions[0] == undefined){
-							$scope.finished = true;
-							$scope.loaded = true;
-						}else{
+						
+						$scope.loaded = true;
+
+						if (user.list[0].remainingQuestions[0]) { // Is there a remaining question?
 							$scope.finished = false;
-							$scope.loaded = true;
 							$scope.question = user.list[0].remainingQuestions[0];
+
+							//Make sure question has options
+							if ($scope.question.questionOptions.length == 0){
+								$scope.finished = true
+							}
+
+						}else{
+							$scope.finished = true;
 						}
 					});
 				}
@@ -32,24 +39,27 @@
 
 		<div class="well col-sm-4 col-sm-offset-4">
 			<div ng-if="loaded">
-				<div ng-if="finished" class="panel panel-primary">
+
+				<div ng-if="finished" class="panel panel-primary"> <!-- Panel for no more questions left -->
 					<div class="text-center panel-body">
 						<h1>Thank you!</h1>
 					</div>
 				</div>
-				<div ng-if="!finished" class="panel panel-primary">
+			
+				<div ng-if="!finished" class="panel panel-primary"> <!-- We've got a question! -->
 					<div class="panel-heading">
 						<h3 class="panel-title">{{question.question}}</h3>
 		  			</div>
 					<div class="panel-body">
 						<form action="/", method="post">
-							<div class="form-group" ng-repeat="option in user.list[0].remainingQuestions[0].questionOptions">
+							<div class="form-group" ng-repeat="option in question.questionOptions">
 								<input type="checkbox" name="option" value={{option.id}}/> {{option.optionText}}
 							</div>
 							<button type="submit" class="btn btn-default">Submit</button>
 						</form>
 					</div>
 				</div>
+			
 			</div>
 		</div>
 	</body>

@@ -17,7 +17,7 @@
 
 					$scope.questions = new Question.query({});
 
-					$scope.editGo = function(id){
+					$scope.editGo = function(id){  // Links for edit pages
 						go('/admin/add/' + id);
 					}
 				}
@@ -32,13 +32,16 @@
 				</div>
 				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 					<ul class="nav navbar-nav">
-						<li class="active"><a onClick="go('/admin/index')">View Questions</a></li>
+						<!--<li class="active"><a onClick="go('/admin/index')">View Questions</a></li>-->
 						<li class=""><a onClick="go('/admin/add/')">Add Question</a></li>
 						<li class=""><a onClick="go('/logout')">Logout</a></li>
 					</ul>
 				</div>
 			</nav>
 
+			<div ng-if="questions.list.length == 0">
+				<h3>You haven't added any questions yet! Head <a onClick="go('/admin/add/')">here.</a></h3>
+			</div>
 			<div ng-repeat="question in questions.list" class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
 				<div class="panel panel-primary">
 			    	<div class="panel-heading" role="tab" id="headingOne">
@@ -48,7 +51,7 @@
 	          						{{question.question}}
 	     	     				</div>
 	          					<div class="col-sm-6 text-right">
-	          						<a ng-click="editGo(question.id)">edit</a>
+	          						<a class="h5" ng-click="editGo(question.id)">edit</a>
 	          					</div>
 	          				</div>
 						</h4>

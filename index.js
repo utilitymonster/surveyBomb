@@ -6,16 +6,16 @@ var crypto = require('crypto');
 
 var models = require('./models');
 var config = require('./config');
+var auth = require('./authenticate');
 
 var Answer = models.Answer;
 var Admin = models.Admin;
 var Question = models.Question;
 var QuestionOption = models.QuestionOption;
 var User = models.User;
+
 var router = express.Router();
 
-var iterations = 1000;
-var keylen = 24; // bytes
 var debug = false;
 
 var app = express();
@@ -53,14 +53,6 @@ function restrict(req, res, next) {  // Function to restrict access
     	res.redirect('/login');
 	}
 }
-
-var callback = function(err, key){
-    var hexHash = Buffer(key, 'binary').toString('hex');
-    
-    User.findAll({where: {username: fields.username}}).then(function(user){
-    	console.log(user);
-    })
-};
 
 router.route('/') 
 	
@@ -110,12 +102,6 @@ app.get('/admin/add/*', function(req, res){
 	res.sendFile(__dirname + '/views/admin/add.html');
 });
 
-
-app.get('/logout', function (req, res) {
-	req.session.destroy();
-	res.redirect('/login');
-});
-
 app.get('/login', function(req, res){
 	
 	res.set('content-type','text/html');
@@ -128,21 +114,35 @@ app.post('/login', function(req, res){
 
 	form.parse(req, function(err, fields, files) {
 
-		var buff = crypto.pbkdf2Sync(fields.password, 'salt', iterations, keylen);
-		var pw = Buffer(buff, 'binary').toString('hex');
+		Admin.findOne({where: {name: fields.name}}).then(function(admin){
 
-		Admin.findOne({where: {name: fields.name, password: pw}}).then(function(admin){
-			if(admin == undefined){
+			if (!admin) { // No one with that name
+				console.log("no one with that name");
 				res.redirect('login');
 			}else{
-				req.session.admin = {};
-				req.session.admin = admin;
-				res.redirect('/admin/index');
+
+				var pw_crypt = auth.obscure_password(fields.password, admin.salt);
+
+				if (admin.password == pw_crypt) { // Password matches?
+					req.session.admin = {};
+					req.session.admin = admin;
+					res.redirect('/admin/index');
+				}else{
+					res.redirect('login');
+				}
 			}
 		})
 
 	});
 })
+
+app.get('/logout', function (req, res) {
+
+	req.session.destroy();
+	res.redirect('/login');
+
+});
+
 
 //API
 
@@ -181,7 +181,18 @@ router.route('/api/questionOption/:id')
 	})
 
 
-router.route('/api/question')
+router.route('/api/question') // Create question and save new question
+
+	.get(function(req, res){
+
+			Question.findAll({undefined, include: [{model: QuestionOption, include: [{model: Answer}]}]}).then(function(questions){
+				for(k = 0; k < questions.length; k++){
+					questions[k].calculateData();
+				}
+				res.send(questions);
+
+			})
+		})
 
 	.post(function(req, res) {
 
@@ -189,45 +200,41 @@ router.route('/api/question')
 
 		form.parse(req, function(err, fields, files) {
 			
-			if(fields.id){ //Updating question and options
-				Question.update(fields, { where: {id: fields.id} , include: [{model: QuestionOption}]}).then(function(){
-					Question.findById(fields.id).then(function(question){
-						for(i = 0; i < fields.questionOptions.length; i++){
-							var qo = fields.questionOptions[i];
+			Question.create(fields, {include: [QuestionOption]});
 
-							if(qo.questionId == undefined){
-								QuestionOption.create(qo).then(function(questionOption){
-									questionOption.setQuestion(question);
-								});		
-							}else{
-								QuestionOption.update({optionText: qo.optionText}, {where: {id: qo.id}});
-							}
-						}
-					});
-				})
-			}else{ // Creating new question
-				Question.create(fields, {include: [QuestionOption]});
-			}
 	    })
 	})
 
-	.get(function(req, res){
-
-		Question.findAll({undefined, include: [{model: QuestionOption, include: [{model: Answer}]}]}).then(function(questions){
-			for(k = 0; k < questions.length; k++){
-				questions[k].calculateData();
-			}
-			res.send(questions);
-
-		})
-	})
+	
 
 
-router.route('/api/question/:id')
+router.route('/api/question/:id') // Edit question and save existing question
 
 	.get(function(req, res){
 		Question.findAll({where: {id: req.params.id }, include: [{model: QuestionOption}]}).then(function(question){
 			res.send(question);
+		})
+	})
+	.post(function(req,res){
+
+		var form = new formidable.IncomingForm();
+
+		form.parse(req, function(err, fields, files) {
+			Question.update(fields, { where: {id: fields.id} , include: [{model: QuestionOption}]}).then(function(){
+				Question.findById(fields.id).then(function(question){
+					for(i = 0; i < fields.questionOptions.length; i++){
+						var qo = fields.questionOptions[i];
+
+						if(qo.questionId == undefined){
+							QuestionOption.create(qo).then(function(questionOption){
+								questionOption.setQuestion(question);
+							});		
+						}else{
+							QuestionOption.update({optionText: qo.optionText}, {where: {id: qo.id}});
+						}
+					}
+				});
+			})
 		})
 	})
 

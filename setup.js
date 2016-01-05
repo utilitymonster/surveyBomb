@@ -1,12 +1,12 @@
 var crypto = require('crypto');
 
 var models = require('./models');
+var auth = require('./authenticate');
+
 var sequelize = models.sequelize;
 var Admin = models.Admin;
   
 var prompt = require('prompt');
-var iterations = 1000;
-var keylen = 24; // bytes
 var force = true;
 
 prompt.start();
@@ -32,14 +32,16 @@ sequelize.sync({force: force}).then(function(){
     if (err) { return onErr(err); }
 
     var password = result.password;
-    var buff = crypto.pbkdf2Sync(password, 'salt', iterations, keylen);
-    var pw_crypt = Buffer(buff, 'binary').toString('hex');
+    var salt = new Buffer(crypto.randomBytes(512)).toString('hex');
+    var pw_crypt = auth.obscure_password(password, salt);
 
     Admin.create({
       name: result.username,
-      password: pw_crypt
+      password: pw_crypt,
+      salt: salt
     }).then(function(){
       console.log("Admin created");
+      console.log("Setup Complete - Run 'node index.js' and visit '/admin/index' in your browser");
     });
 
   });

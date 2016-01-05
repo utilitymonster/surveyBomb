@@ -19,7 +19,7 @@
 					if($location.url().split('/')[3]){ // id set
 
 						$scope.edit = true;
-						var id = $location.url().split('/')[3];
+						var id = $location.url().split('/')[3]; // id from url
 						
 						Question.query({id: id}, function(question){
 							$scope.question = question.list[0];
@@ -28,8 +28,47 @@
 							})
 						});
 
-					}else{
+					}else{ // New question
+
 						$scope.question = new Question();
+					
+					}
+
+					$scope.checkValid = function(){ // Checking validity of form
+
+						$scope.error_empty = false;
+						$scope.saved = false;
+						$scope.error_no_options = false;
+
+						if ($scope.question.questionOptions) { // Has question options!
+
+							if ($scope.question.questionOptions.length < 2) {
+								$scope.error_no_options = true;
+							}
+
+							angular.forEach($scope.question.questionOptions, function(question_option){ // Checking for empty options
+								if (question_option.optionText.length == 0) {
+									$scope.error_option_length = true;
+									$scope.error_empty = true;
+									$scope.error_empty_text = "One of your options is empty. Delete it with the 'x'?";
+								}
+							})
+
+							if (!$scope.question.question) { // No Question text
+								$scope.error_question_length = true;
+								$scope.error_empty = true;
+								$scope.error_empty_text = "You must enter a question";
+							}
+
+							if(!$scope.error_empty && !$scope.error_no_options){ // Either no question text or no option text
+								$scope.saved = true;
+								$scope.question.$save();
+							}
+
+						}else{
+							$scope.error_no_options = true;
+						}
+
 					}
 				}
 			);
@@ -38,11 +77,10 @@
 		<div class="container"  ng-app="sumoApp" ng-controller="addController">
 			<nav class="navbar navbar-inverse">
 				<div class="navbar-header">
-					<a class="navbar-brand" ng-click="go('/admin/index')">Admin Dashboard</a>
+					<a class="navbar-brand" onClick="go('/admin/index')">Admin Dashboard</a>
 				</div>
 				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
 					<ul class="nav navbar-nav">
-						<li class=""><a onClick="go('/admin/index')">View Questions</a></li>
 						<li class="active"><a onClick="go('/admin/add/')">Add Question</a></li>
 						<li class=""><a onClick="go('/logout')">Logout</a></li>
 					</ul>
@@ -50,6 +88,19 @@
 			</nav>
 			<div>
 				<h1><span ng-if="edit">Edit</span><span ng-if="!edit">Add</span> Survey Question</h1>
+
+				<div ng-show="saved" class="alert alert-success" role="alert">
+					<button type="button" class="close" ng-click="saved = false"><span>&times;</span></button>
+					Woot! Question saved.
+				</div>
+				<div ng-show="error_no_options" class="alert alert-danger" role="alert">
+					<button type="button" class="close" ng-click="error_no_options = false"><span>&times;</span></button>
+					You must add at least 2 answer options before you save the question.
+				</div>
+				<div ng-show="error_empty" class="alert alert-danger" role="alert">
+					<button type="button" class="close" ng-click="error_empty = false"><span>&times;</span></button>
+					{{error_empty_text}}
+				</div>
 				<form class="col-sm-12 form-horizontal">
   					<div class="form-group">
 						<input type="text" class="form-control" ng-model="question.question" placeholder="Survey Question">
@@ -65,7 +116,7 @@
 					</div>
 					<div class="text-right form-group">
 						<button class="btn btn-default" ng-click="question.newOption()">Add Option</button>
-						<button type="submit" class="btn btn-primary" ng-click="question.$save()">Save</button>
+						<button type="submit" class="btn btn-primary" ng-click="checkValid()">Save</button>
 					</div>
 				</form>
 			</div>
