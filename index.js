@@ -200,7 +200,9 @@ router.route('/api/question') // Create question and save new question
 
 		form.parse(req, function(err, fields, files) {
 			
-			Question.create(fields, {include: [QuestionOption]});
+			Question.create(fields, {include: [QuestionOption]}).then(function(){
+				res.sendStatus(200);
+			});
 
 	    })
 	})
@@ -233,6 +235,7 @@ router.route('/api/question/:id') // Edit question and save existing question
 							QuestionOption.update({optionText: qo.optionText}, {where: {id: qo.id}});
 						}
 					}
+					res.sendStatus(200);
 				});
 			})
 		})

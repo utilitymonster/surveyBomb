@@ -1,7 +1,7 @@
 //Configuration Variable
 
 var config = module.exports = {};
-config.db_name = 'surveyBomb'; // database name
+config.db_name = 'appSumo'; // database name
 config.db_username = 'root'; // your mysql username
 config.db_password = 'root'; // your mysql password
 config.port = 8000; 
